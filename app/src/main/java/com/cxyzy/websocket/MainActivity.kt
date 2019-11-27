@@ -1,37 +1,31 @@
-package com.fomin.websocket
+package com.cxyzy.websocket
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
-import android.text.Editable
-import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import okhttp3.Response
-import okhttp3.WebSocket
-import okhttp3.WebSocketListener
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
-import okio.ByteString
 import kotlin.concurrent.thread
 
 
-class MainActivity : AppCompatActivity(), IReceiveMessage {
+class MainActivity : AppCompatActivity(), MessageListener {
+    private val serverUrl = "ws://192.168.18.145:8086/socketServer/abc"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        btn_connect.setOnClickListener {
+        WebSocketManager.init(serverUrl, this)
+        connectBtn.setOnClickListener {
             thread {
                 kotlin.run {
-                    WebSocketManager.getInstance().init("", this)
+                    WebSocketManager.connect()
                 }
             }
         }
-        btn_client_send.setOnClickListener {
-            if (WebSocketManager.getInstance().sendMessage("客户端发送")) {
-                addText("客户端发送")
+        clientSendBtn.setOnClickListener {
+            if (WebSocketManager.sendMessage("客户端发送")) {
+                addText("客户端发送\n")
             }
         }
-        btn_client_close.setOnClickListener {
-            WebSocketManager.getInstance().close()
+        closeConnectionBtn.setOnClickListener {
+            WebSocketManager.close()
         }
     }
 
@@ -53,12 +47,12 @@ class MainActivity : AppCompatActivity(), IReceiveMessage {
 
     private fun addText(text: String?) {
         runOnUiThread {
-            et_content.text.append(text)
+            contentEt.text.append(text)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        WebSocketManager.getInstance().close()
+        WebSocketManager.close()
     }
 }
